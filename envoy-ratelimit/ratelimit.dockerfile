@@ -1,9 +1,15 @@
-FROM golang:1.10.4 as build
+FROM golang:1.14 AS build
+WORKDIR /ratelimit
 
-RUN CGO_ENABLED=0 GOOS=linux go get -v github.com/lyft/ratelimit/src/service_cmd
+ENV GOPROXY=https://proxy.golang.org
+COPY go.mod go.sum /ratelimit/
+RUN go mod download
 
-FROM alpine:3.8 AS final
-WORKDIR /ratelimit/config
+COPY src src
+COPY script script
 
+RUN CGO_ENABLED=0 GOOS=linux go build -o /go/bin/ratelimit -ldflags="-w -s" -v github.com/envoyproxy/ratelimit/src/service_cmd
+
+FROM alpine:3.11 AS final
 RUN apk --no-cache add ca-certificates
-COPY --from=build /go/bin/service_cmd /usr/local/bin/ratelimit
+COPY --from=build /go/bin/ratelimit /bin/ratelimit

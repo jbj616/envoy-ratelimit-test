@@ -3,7 +3,7 @@ descriptors:
   - key: generic_key
     value: global
     rate_limit:
-      unit: second
+      unit: minute
       requests_per_unit: 60
   - key: generic_key
     value: local
